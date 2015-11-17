@@ -1,4 +1,4 @@
-<? if($_SERVER['REQUEST_METHOD'] == 'POST') { header("Location: http://lolcats.dev/"); } ?>
+<? //if($_SERVER['REQUEST_METHOD'] == 'POST') { header("Location: http://lolcats.dev/"); } ?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -10,50 +10,12 @@
   </head>
   <body>
     <?php
-      $SERVERNAME = 'localhost';
-      $USERNAME   = 'root';
-      $PASSWORD   = 'fuckoff';
-      $DBNAME     = 'database1';
+      require_once "config.php";
 
-      function db_connect($servername, $username, $password, $dbname) {
-        $conn = new mysqli($servername, $username, $password, $dbname);
-        if ($conn->connect_error) {
-          die("Connection failed " . $conn->$connect_error);
-        }
-        mysqli_set_charset($conn, 'utf8');
-        echo "Connected successfully.";
-        return $conn;
-      }
+      $posts = $site->get_posts();
 
-      function get_posts($conn) {
-        $query = "SELECT * FROM posts ORDER BY id DESC";
-        $result = $conn->query($query);
-        if (!$result) {
-          die("Query failed " . mysql_error());
-        } else {
-          echo "Posts query OK.";
-          return $result;
-        }
-      }
-
-      function post_comment($conn, $name, $email, $post) {
-        if (strlen($name) == 0 || strlen($post) == 0) {
-          echo "Invalid input";
-          return;
-        }
-        if ( strlen($email) == 0 ) {
-          $email = NULL;
-        }
-        $query = $conn->prepare("INSERT INTO posts (name, email, post) VALUES (?, ?, ?)");
-        $query->bind_param('sss', $name, $email, $post);
-        $query->execute();
-
-        if (!$query) {
-          die(" Query failed " . mysql_error());
-        } else {
-          echo " Comment posted.";
-          return $result;
-        }
+      if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_post'])) {
+        $site->post_comment($_POST['name'], $_POST['email'], $_POST['post']);
       }
     ?>
     <div class="jumbotron">
@@ -64,23 +26,15 @@
               <li class="list-group-item">
                 <a href="/"><img id="cat" src="cat.jpg" height="476" width="524"></a>
               </li>
+              <li class="list-group-item">
+                <h4>
+                  <? var_dump($_POST); ?>
+                </h4>
+              </li>
             </ul>
           </div>
           <div class="col-md-6 debug">
             <ul class="list-group">
-              <li class="list-group-item">
-                <h4> <? $conn = db_connect($SERVERNAME, $USERNAME, $PASSWORD, $DBNAME); ?> <h4>
-              </li>
-              <li class="list-group-item">
-                <h4>
-                  <?
-                    $posts = get_posts($conn);
-                    if($_SERVER['REQUEST_METHOD'] == 'POST') {
-                      post_comment($conn, $_POST['name'], $_POST['email'], $_POST['post']);
-                    }
-                  ?>
-                </h4>
-              </li>
               <li class="list-group-item">
                 <form role="form" class="form-horizontal" action="index.php" method="post">
                   <div class="form-group">
@@ -101,7 +55,53 @@
                   </div>
                   <div class="form-group">
                     <div class="col-md-12">
-                      <button type="submit" class="btn btn-info pull-right">Submit</button>
+                      <button type="submit" name="submit_post" class="btn btn-info pull-right">Submit</button>
+                    </div>
+                  </div>
+                </form>
+              </li>
+              <li class="list-group-item">
+                <form role="form" class="form-horizontal" action="index.php" method="post">
+                  <div class="form-group">
+                    <div class="col-md-5">
+                      <label for='email'>Email</label>
+                      <input name="email" type="text" class="form-control" id='email' placeholder="Email">
+                    </div>
+                    <div class="col-md-5">
+                      <label for='password'>Password</label>
+                      <input name="password"  type="text" class="form-control" id='password' placeholder="password">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-md-12">
+                      <button type="submit" name="login" class="btn btn-info pull-right">Submit</button>
+                    </div>
+                  </div>
+                </form>
+              </li>
+              <li class="list-group-item">
+                <form role="form" class="form-horizontal" action="index.php" method="post">
+                  <div class="form-group">
+                    <div class="col-md-5">
+                      <label for='email'>Email</label>
+                      <input name="email" type="text" class="form-control" id='email' placeholder="Email">
+                    </div>
+                    <div class="col-md-5">
+                      <label for='name'>Name</label>
+                      <input name="name"  type="text" class="form-control" id='name' placeholder="Name">
+                    </div>
+                    <div class="col-md-5">
+                      <label for='password'>Password</label>
+                      <input name="password"  type="text" class="form-control" id='password' placeholder="password">
+                    </div>
+                    <div class="col-md-5">
+                      <label for='repeat_password'>Repeat password</label>
+                      <input name="repeat_password" type="text" class="form-control" id='repeat_password' placeholder="password">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-md-12">
+                      <button type="submit" name="register" class="btn btn-info pull-right">Submit</button>
                     </div>
                   </div>
                 </form>
