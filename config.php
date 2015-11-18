@@ -7,7 +7,11 @@
   $PASSWORD   = 'fuckoff';
   $DBNAME     = 'database1';
 
-  $ANONS_CAN_POST = true;
+  $DEBUG      = false;
+
+  $SITENAME   = "lolcats.dev";
+
+  $ANONS_CAN_POST = false;
 
   $site->db_connect($SERVERNAME, $USERNAME, $PASSWORD, $DBNAME);
 ?>
