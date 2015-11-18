@@ -7,5 +7,7 @@
   $PASSWORD   = 'fuckoff';
   $DBNAME     = 'database1';
 
+  $ANONS_CAN_POST = true;
+
   $site->db_connect($SERVERNAME, $USERNAME, $PASSWORD, $DBNAME);
 ?>

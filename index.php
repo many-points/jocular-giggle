@@ -1,4 +1,5 @@
-<? //if($_SERVER['REQUEST_METHOD'] == 'POST') { header("Location: http://lolcats.dev/"); } ?>
+<? session_start();
+ //if($_SERVER['REQUEST_METHOD'] == 'POST') { header("Location: http://lolcats.dev/"); } ?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -14,8 +15,34 @@
 
       $posts = $site->get_posts();
 
-      if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_post'])) {
-        $site->post_comment($_POST['name'], $_POST['email'], $_POST['post']);
+      if($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+        if(isset($_POST['submit_post'])) {
+          if(isset($_POST['id']) && isset($_SESSION['id']) && $_POST['id'] == $_SESSION['id']) {
+            $site->post_comment($_SESSION['name'], isset($_POST['leave_email']) ? $_SESSION['email'] : "", $_POST['post']);
+          } else {
+            $site->post_comment($_POST['name'], $_POST['email'], $_POST['post']);
+          }
+        }
+
+        if(isset($_POST['login'])) {
+          $site->login($_POST['email'], $_POST['password']);
+        }
+
+        if(isset($_POST['logout'])) {
+          $site->logout();
+        }
+
+        if(isset($_POST['register'])) {
+          $site->register($_POST['email'], $_POST['name'], $_POST['password'], $_POST['repeat_password']);
+        }
+
+        if(isset($_POST['delete_post'])) {
+          if (isset($_SESSION['id']) && $_SESSION['id'] == '1') {
+            $site->delete_post($_POST['id']);
+          }
+        }
+
       }
     ?>
     <div class="jumbotron">
@@ -28,7 +55,9 @@
               </li>
               <li class="list-group-item">
                 <h4>
-                  <? var_dump($_POST); ?>
+                  <? var_dump($_POST);
+                     var_dump($_SESSION);
+                  ?>
                 </h4>
               </li>
             </ul>
@@ -36,75 +65,114 @@
           <div class="col-md-6 debug">
             <ul class="list-group">
               <li class="list-group-item">
-                <form role="form" class="form-horizontal" action="index.php" method="post">
-                  <div class="form-group">
-                    <div class="col-md-5">
-                      <label for='name'>Name</label>
-                      <input name="name"  type="text" class="form-control" id='name' placeholder="Name">
+                <? if($_SESSION && isset($_SESSION['id'])): ?>
+                  <p>You are logged in as <?=$_SESSION['name']?></p>
+                  <form id="logout-form" role="form" class="form-horizontal" action="index.php" method="post">
+                    <div class="form-group">
+                      <div class="col-md-5">
+                        <button type="submit" name="logout" class="btn btn-warning">Logout</button>
+                      </div>
                     </div>
-                    <div class="col-md-5">
-                      <label for='email'>Email</label>
-                      <input name="email" type="text" class="form-control" id='email' placeholder="Email">
+                  </form>
+                <? else: ?>
+                  <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#login-form">Login form</button>
+                  <form id="login-form" role="form" class="form-horizontal collapse" action="index.php" method="post">
+                    <div class="form-group">
+                      <div class="col-md-5">
+                        <p style="margin-bottom: 2px">Email</p>
+                        <input name="email" type="text" class="form-control" id='email' placeholder="Email">
+                      </div>
+                      <div class="col-md-5">
+                        <p style="margin-bottom: 2px">Password</p>
+                        <input name="password"  type="text" class="form-control" id='password' placeholder="password">
+                      </div>
                     </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="col-md-12" for="post">Post</label>
-                    <div class="col-md-12">
-                      <textarea name="post" class="form-control" rows="5" id="post"></textarea>
+                    <div class="form-group">
+                      <div class="col-md-12">
+                        <button type="submit" name="login" class="btn btn-primary pull-right">Submit</button>
+                      </div>
                     </div>
-                  </div>
-                  <div class="form-group">
-                    <div class="col-md-12">
-                      <button type="submit" name="submit_post" class="btn btn-info pull-right">Submit</button>
-                    </div>
-                  </div>
-                </form>
+                  </form>
+                <? endif; ?>
               </li>
+              <? if($_SESSION && isset($_SESSION['id'])): ?>
+              <? else: ?>
+                <li class="list-group-item">
+                  <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#registration-form">Reg form</button>
+                  <form id="registration-form" role="form" class="form-horizontal collapse" action="index.php" method="post">
+                    <div class="form-group">
+                      <div class="col-md-5">
+                        <p style="margin-bottom: 2px">Email</p>
+                        <input name="email" type="text" class="form-control" id='email' placeholder="Email">
+                      </div>
+                      <div class="col-md-5">
+                        <p style="margin-bottom: 2px">Name</p>
+                        <input name="name"  type="text" class="form-control" id='name' placeholder="Name">
+                      </div>
+                      <div class="col-md-5">
+                        <p style="margin-bottom: 2px">Password</p>
+                        <input name="password"  type="text" class="form-control" id='password' placeholder="password">
+                      </div>
+                      <div class="col-md-5">
+                        <p style="margin-bottom: 2px">Repeat password</p>
+                        <input name="repeat_password" type="text" class="form-control" id='repeat_password' placeholder="password">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="col-md-12">
+                        <button type="submit" name="register" class="btn btn-primary pull-right">Submit</button>
+                      </div>
+                    </div>
+                  </form>
+                </li>
+              <? endif; ?>
               <li class="list-group-item">
-                <form role="form" class="form-horizontal" action="index.php" method="post">
-                  <div class="form-group">
-                    <div class="col-md-5">
-                      <label for='email'>Email</label>
-                      <input name="email" type="text" class="form-control" id='email' placeholder="Email">
+                <? if($_SESSION && isset($_SESSION['id'])): ?>
+                  <form role="form" class="form-horizontal" action="index.php" method="post">
+                    <input name="id" type="hidden" value="<?=$_SESSION['id']?>">
+                    <div class="form-group">
+                      <div class="col-md-5">
+                        <p style="margin-bottom: 2px">Post as <?=$_SESSION['name']?></p>
+                      </div>
+                      <div class="col-md-5">
+                        <p style="margin-bottom: 2px"><input name="leave_email" type="checkbox"> Leave email</p>
+                      </div>
                     </div>
-                    <div class="col-md-5">
-                      <label for='password'>Password</label>
-                      <input name="password"  type="text" class="form-control" id='password' placeholder="password">
+                    <div class="form-group">
+                      <div class="col-md-12">
+                        <textarea name="post" class="form-control" rows="5" id="post"></textarea>
+                      </div>
                     </div>
-                  </div>
-                  <div class="form-group">
-                    <div class="col-md-12">
-                      <button type="submit" name="login" class="btn btn-info pull-right">Submit</button>
+                    <div class="form-group">
+                      <div class="col-md-12">
+                        <button type="submit" name="submit_post" class="btn btn-primary pull-right">Submit</button>
+                      </div>
                     </div>
-                  </div>
-                </form>
-              </li>
-              <li class="list-group-item">
-                <form role="form" class="form-horizontal" action="index.php" method="post">
-                  <div class="form-group">
-                    <div class="col-md-5">
-                      <label for='email'>Email</label>
-                      <input name="email" type="text" class="form-control" id='email' placeholder="Email">
+                  </form>
+                <? else: ?>
+                  <form role="form" class="form-horizontal" action="index.php" method="post">
+                    <div class="form-group">
+                      <div class="col-md-5">
+                        <p style="margin-bottom: 2px">Post as</p>
+                        <input name="name"  type="text" size="5" class="form-control" id='name' placeholder="Name">
+                      </div>
+                      <div class="col-md-5">
+                        <p style="margin-bottom: 2px">Email (optional)</p>
+                        <input name="email" type="text" class="form-control" id='email' placeholder="Email">
+                      </div>
                     </div>
-                    <div class="col-md-5">
-                      <label for='name'>Name</label>
-                      <input name="name"  type="text" class="form-control" id='name' placeholder="Name">
+                    <div class="form-group">
+                      <div class="col-md-12">
+                        <textarea name="post" class="form-control" rows="5" id="post" placeholder="Enter text here!"></textarea>
+                      </div>
                     </div>
-                    <div class="col-md-5">
-                      <label for='password'>Password</label>
-                      <input name="password"  type="text" class="form-control" id='password' placeholder="password">
+                    <div class="form-group">
+                      <div class="col-md-12">
+                        <button type="submit" name="submit_post" class="btn btn-primary pull-right">Submit</button>
+                      </div>
                     </div>
-                    <div class="col-md-5">
-                      <label for='repeat_password'>Repeat password</label>
-                      <input name="repeat_password" type="text" class="form-control" id='repeat_password' placeholder="password">
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <div class="col-md-12">
-                      <button type="submit" name="register" class="btn btn-info pull-right">Submit</button>
-                    </div>
-                  </div>
-                </form>
+                  </form>
+                <? endif; ?>
               </li>
             </ul>
           </div>
@@ -120,9 +188,17 @@
                     <? if ($row['email'] != NULL): ?>
                       <a href="mailto:<?=$row['email']?>"><span class="glyphicon glyphicon-envelope"></span></a>
                     <? endif; ?>
-                    <span class="date">on <?=$row['date']?></span>
+                    <span class="date">wrote on <?=$row['date']?></span>
                   </small></h4>
-                  <p><?=$row['post']?></p>
+                  <p><?=nl2br($row['post'])?></p>
+                  <? if ($_SESSION['id'] == '1'): ?>
+                    <div style="position: absolute; right: 10px; bottom: 10px;">
+                      <form action="index.php" method="post">
+                        <input name="id" type="hidden" value="<?=$row['id']?>">
+                        <button type="submit" name="delete_post"class="btn btn-danger">Delete</button>
+                      </form>
+                    </div>
+                  <? endif; ?>
                 </li>
               <? endwhile; ?>
             </ul>
